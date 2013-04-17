@@ -28,7 +28,7 @@
 # Variables you should adjust for your setup
 ################################################################################
 
-APPHOST=5rtz.me
+APPHOST=ec2-54-234-235-74.compute-1.amazonaws.com
 SERVICENAME=app5rtz
 
 ################################################################################
@@ -134,18 +134,6 @@ function install_nodejs {
 	sudo add-apt-repository -y ppa:chris-lea/node.js
 	sudo apt-get -y update
 	sudo apt-get -y install nodejs
-}
-
-function install_npm_packs {
-        echo "_________________________________________"
-        echo "Instal npm globals"
-        echo "----------------------------------------"
-
-        sudo npm install -g karma
-        sudo npm install -g phantomjs
-        sudo npm install -g selenium-webdriver
-        sudo npm install -g grunt-cli
-
 }
 
 

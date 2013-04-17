@@ -28,8 +28,8 @@
 # Variables you should adjust for your setup
 ################################################################################
 
-APPHOST=ec2-54-234-235-74.compute-1.amazonaws.com
-SERVICENAME=app5rtz
+APPHOST=5rtz.me
+SERVICENAME=meteor_app
 
 ################################################################################
 # Internal variables
@@ -151,6 +151,7 @@ function install_meteor {
 	echo "--------------------------------------------------------------------------------"
 
 	curl https://install.meteor.com | /bin/sh
+        sudo npm install -g meteorite
 }
 
 function setup_app_skeleton {
@@ -239,8 +240,8 @@ function setup_post_update_hook {
 	append $HOOK "echo \"Bundling app as a standalone Node.js app\""
 	append $HOOK "echo \"------------------------------------------------------------------------\""
 	append $HOOK "cd $EXPORTFOLDER"
-	append $HOOK "meteor update"
-	append $HOOK "meteor bundle $EXPORTFOLDER/bundle.tar.gz"
+	append $HOOK "mrt update"
+	append $HOOK "mrt bundle $EXPORTFOLDER/bundle.tar.gz"
 	append $HOOK "if [ -f $EXPORTFOLDER/bundle.tar.gz ]; then"
 	append $HOOK "  mkdir -p $RSYNCSOURCE"
 	append $HOOK "  tar -zxf $EXPORTFOLDER/bundle.tar.gz --strip-components 1 -C $RSYNCSOURCE"

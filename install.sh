@@ -136,6 +136,19 @@ function install_nodejs {
 	sudo apt-get -y install nodejs
 }
 
+function install_npm_packs {
+        echo "_________________________________________"
+        echo "Instal npm globals"
+        echo "----------------------------------------"
+
+        sudo npm install -g karma
+        sudo npm install -g phantomjs
+        sudo npm install -g selenium-webdriver
+        sudo npm install -g grunt-cli
+
+}
+
+
 function install_mongodb {
 	echo "--------------------------------------------------------------------------------"
 	echo "Install MongoDB"
@@ -309,6 +322,7 @@ configure_firewall
 configure_automatic_security_updates
 install_git
 install_nodejs
+install_npm_packs
 install_mongodb
 install_meteor
 setup_app_skeleton

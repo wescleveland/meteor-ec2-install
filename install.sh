@@ -28,8 +28,8 @@
 # Variables you should adjust for your setup
 ################################################################################
 
-APPHOST=12.34.56.78
-SERVICENAME=meteor_app
+APPHOST=5rtz.me
+SERVICENAME=app5rtz
 
 ################################################################################
 # Internal variables

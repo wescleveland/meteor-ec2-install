@@ -1,7 +1,6 @@
 # Meteor EC2 installation script
 
-Automated server installation for Meteor 0.6.0+ on a fresh AWS EC2 Ubuntu Server 12.10 installation.
+Forked from https://github.com/matb33/meteor-ec2-install
 
-Similarly to Heroku, deploy with a simple `git push ec2 master`. Awesome!
-
-*NOTE: Although MongoDB is installed, I only tested against having my database remotely on MongoHQ. Let me know if you have issues with a local DB.*
+Removed actual app running code, git push code, this is meant only to install
+the meteor pre-reqs and do some quick housecleaning on a server.

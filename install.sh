@@ -28,7 +28,7 @@
 # Variables you should adjust for your setup
 ################################################################################
 
-APPHOST=5rtz.me
+APPHOST=figs.thenuts.in
 SERVICENAME=meteor_app
 
 ################################################################################
@@ -154,153 +154,12 @@ function install_meteor {
         sudo npm install -g meteorite
 }
 
-function setup_app_skeleton {
-	echo "--------------------------------------------------------------------------------"
-	echo "Setup app skeleton"
-	echo "--------------------------------------------------------------------------------"
-
-	rm -rf $APPFOLDER
-	mkdir -p $APPFOLDER
-	touch $APPFOLDER/main.js
-}
-
-function setup_app_service {
-	echo "--------------------------------------------------------------------------------"
-	echo "Setup app service"
-	echo "--------------------------------------------------------------------------------"
-
-	local SERVICEFILE=/etc/init/$SERVICENAME.conf
-	local LOGFILE=/var/log/$SERVICENAME.log
-
-	sudo rm -f $SERVICEFILE
-
-	append $SERVICEFILE "description \"$SERVICENAME\""
-	append $SERVICEFILE "author      \"Mathieu Bouchard <matb33@gmail.com>\""
-
-	append $SERVICEFILE "start on runlevel [2345]"
-	append $SERVICEFILE "stop on restart"
-	append $SERVICEFILE "respawn"
-
-	append $SERVICEFILE "pre-start script"
-	append $SERVICEFILE "  echo \"[\$(/bin/date -u +%Y-%m-%dT%T.%3NZ)] (sys) Starting\" >> $LOGFILE"
-	append $SERVICEFILE "end script"
-
-	append $SERVICEFILE "pre-stop script"
-	append $SERVICEFILE "  rm -f /var/run/$SERVICENAME.pid"
-	append $SERVICEFILE "  echo \"[$(/bin/date -u +%Y-%m-%dT%T.%3NZ)] (sys) Stopping\" >> $LOGFILE"
-	append $SERVICEFILE "end script"
-
-	append $SERVICEFILE "script"
-	append $SERVICEFILE "  echo \$\$ > /var/run/$SERVICENAME.pid"
-	append $SERVICEFILE "  $APPEXECUTABLE \"$LOGFILE\""
-	append $SERVICEFILE "end script"
-}
-
-function setup_bare_repo {
-	echo "--------------------------------------------------------------------------------"
-	echo "Setup bare repo"
-	echo "--------------------------------------------------------------------------------"
-
-	rm -rf $GITBAREREPO
-	mkdir -p $GITBAREREPO
-	cd $GITBAREREPO
-
-	git init --bare
-	git update-server-info
-}
-
-function setup_post_update_hook {
-	echo "--------------------------------------------------------------------------------"
-	echo "Setup post update hook"
-	echo "--------------------------------------------------------------------------------"
-
-	local HOOK=$GITBAREREPO/hooks/post-receive
-	local RSYNCSOURCE=$EXPORTFOLDER/app_rsync
-
-	rm -f $HOOK
-
-	append $HOOK "#!/bin/bash"
-	append $HOOK "unset \$(git rev-parse --local-env-vars)"
-
-	append $HOOK "echo \"------------------------------------------------------------------------\""
-	append $HOOK "echo \"Exporting app from git repo\""
-	append $HOOK "echo \"------------------------------------------------------------------------\""
-	append $HOOK "rm -rf $EXPORTFOLDER"
-	append $HOOK "mkdir -p $EXPORTFOLDER"
-	append $HOOK "git archive master | tar -x -C $EXPORTFOLDER"
-
-	append $HOOK "echo \"------------------------------------------------------------------------\""
-	append $HOOK "echo \"Updating production executable\""
-	append $HOOK "echo \"------------------------------------------------------------------------\""
-	append $HOOK "sudo mv -f $EXPORTFOLDER/.#production $APPEXECUTABLE"
-	append $HOOK "echo -e \"\\\n\\\n/usr/bin/node $APPFOLDER/main.js >> \\\$1 2>&1\" >> $APPEXECUTABLE"
-	append $HOOK "chmod 700 $APPEXECUTABLE"
-
-	append $HOOK "echo \"------------------------------------------------------------------------\""
-	append $HOOK "echo \"Bundling app as a standalone Node.js app\""
-	append $HOOK "echo \"------------------------------------------------------------------------\""
-	append $HOOK "cd $EXPORTFOLDER"
-	append $HOOK "mrt update"
-	append $HOOK "mrt bundle $EXPORTFOLDER/bundle.tar.gz"
-	append $HOOK "if [ -f $EXPORTFOLDER/bundle.tar.gz ]; then"
-	append $HOOK "  mkdir -p $RSYNCSOURCE"
-	append $HOOK "  tar -zxf $EXPORTFOLDER/bundle.tar.gz --strip-components 1 -C $RSYNCSOURCE"
-
-	append $HOOK "  if [ -f $RSYNCSOURCE/main.js ]; then"
-	append $HOOK "    echo \"------------------------------------------------------------------------\""
-	append $HOOK "    echo \"Building Fibers\""
-	append $HOOK "    echo \"------------------------------------------------------------------------\""
-	append $HOOK "    cd $RSYNCSOURCE/server/node_modules"
-	append $HOOK "    rm -rf fibers"
-	append $HOOK "    npm install fibers@1.0.0"
-
-	append $HOOK "    echo \"------------------------------------------------------------------------\""
-	append $HOOK "    echo \"Rsync standalone app to active app location\""
-	append $HOOK "    echo \"------------------------------------------------------------------------\""
-	append $HOOK "    rsync --checksum --recursive --update --delete --times $RSYNCSOURCE/ $APPFOLDER/"
-
-	append $HOOK "    echo \"------------------------------------------------------------------------\""
-	append $HOOK "    echo \"Restart app\""
-	append $HOOK "    echo \"------------------------------------------------------------------------\""
-	append $HOOK "    sudo service $SERVICENAME restart"
-	append $HOOK "  fi"
-
-	# Clean-up
-	append $HOOK "  cd $APPFOLDER"
-	append $HOOK "  rm -rf $EXPORTFOLDER"
-	append $HOOK "fi"
-
-	append $HOOK "echo \"\n\n--- Done.\""
-
-	sudo chown $MAINUSER:$MAINGROUP $HOOK
-	chmod +x $HOOK
-}
 
 function show_conclusion {
 	echo -e "\n\n\n\n\n"
 	echo "########################################################################"
-	echo " On your local development server"
+	echo " Finished installing! "
 	echo "########################################################################"
-	echo ""
-	echo "Add remote repository:"
-	echo "$ git remote add ec2 $MAINUSER@$APPHOST:$SERVICENAME.git"
-	echo ""
-	echo "Add to your ~/.ssh/config:"
-	echo -e "Host $APPHOST\n  Hostname $APPHOST\n  IdentityFile PRIVATE_KEY_YOU_GOT_FROM_AWS.pem"
-	echo ""
-	echo "To deploy:"
-	echo "$ git push ec2 master"
-	echo ""
-	echo "########################################################################"
-	echo " Manual commands to run to finish off installation"
-	echo "########################################################################"
-	echo ""
-	echo "Run the following command:"
-	echo "$ sudo ufw enable"
-	echo ""
-	echo "Reboot to complete the installation. Example:"
-	echo "$ sudo reboot"
-	echo ""
 }
 
 ################################################################################
@@ -314,8 +173,3 @@ install_nodejs
 install_npm_packs
 install_mongodb
 install_meteor
-setup_app_skeleton
-setup_app_service
-setup_bare_repo
-setup_post_update_hook
-show_conclusion
